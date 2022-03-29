@@ -1,5 +1,6 @@
 let myLibrary = [];
 let myTable = document.querySelector('#table');
+let firstStart = true;
 
 function Book(author, title, pages, read) {
     this.author = author;
@@ -22,43 +23,70 @@ addBookToLibrary(book2);
 addBookToLibrary(book3);
 addBookToLibrary(book4);
 
-let headers = ['Author', 'Title', 'Total Pages', 'Read'];
+updateTable();
 
-let table = document.createElement('table');
-let headerRow = document.createElement('tr');
+function updateTable() {
+    deletePrevTable();
+    let headers = ['Author', 'Title', 'Total Pages', 'Read'];
 
-headers.forEach(headerText => {
-    let header = document.createElement('th');
-    let textNode = document.createTextNode(headerText);
-    header.appendChild(textNode);
-    headerRow.appendChild(header);
-});
+    let table = document.createElement('table');
+    table.setAttribute("id", "tableProv");
+    let headerRow = document.createElement('tr');
 
-table.appendChild(headerRow);
-
-myLibrary.forEach(book => {
-    let row = document.createElement('tr');
-    Object.values(book).forEach(text => {
-        let cell = document.createElement('td');
-
-        if (text == false) {
-            let textNode = document.createTextNode('No');
-            cell.appendChild(textNode);
-            row.appendChild(cell);
-        } else if (text == true) {
-            let textNode = document.createTextNode('Yes');
-            cell.appendChild(textNode);
-            row.appendChild(cell);
-        } else {
-            let textNode = document.createTextNode(text);
-            cell.appendChild(textNode);
-            row.appendChild(cell);
-        }
+    headers.forEach(headerText => {
+        let header = document.createElement('th');
+        let textNode = document.createTextNode(headerText);
+        header.appendChild(textNode);
+        headerRow.appendChild(header);
     });
-    table.appendChild(row);
-});
 
-myTable.appendChild(table);
+    table.appendChild(headerRow);
+
+    myLibrary.forEach(book => {
+        let row = document.createElement('tr');
+        Object.values(book).forEach(text => {
+            let cell = document.createElement('td');
+
+            if (text == false) {
+                let textNode = document.createTextNode('No');
+                cell.appendChild(textNode);
+                row.appendChild(cell);
+            } else if (text == true) {
+                let textNode = document.createTextNode('Yes');
+                cell.appendChild(textNode);
+                row.appendChild(cell);
+            } else {
+                let textNode = document.createTextNode(text);
+                cell.appendChild(textNode);
+                row.appendChild(cell);
+            }
+        });
+        let readbutton = document.createElement('button');
+        readbutton.className = 'readButton';
+        readbutton.textContent = "Un/Read";
+        readbutton.addEventListener("mousedown", function() { unread(book.title) });
+        row.appendChild(readbutton);
+
+        let deletebutton = document.createElement('button');
+        deletebutton.className = 'deleteButton';
+        deletebutton.textContent = "Delete";
+
+        deletebutton.addEventListener("mousedown", function() { deleteBook(book.title) });
+        row.appendChild(deletebutton);
+        table.appendChild(row);
+    });
+
+    myTable.appendChild(table);
+    firstStart = false;
+}
+
+function deletePrevTable() {
+    if (!firstStart) {
+        let tableProv = document.getElementById("tableProv");
+        tableProv.remove();
+    }
+
+}
 
 function openForm() {
     document.getElementById("myForm").style.display = "block";
@@ -69,30 +97,39 @@ function closeForm() {
 }
 
 function addBook() {
+    let exists = false;
     let book = new Book(document.getElementById("author").value, document.getElementById("title").value, document.getElementById("pages").value, document.getElementById("read").checked);
-    myLibrary.push(book);
-    let row = document.createElement('tr');
-    let cell = document.createElement('td');
-    let textNode = document.createTextNode(book.author);
-    cell.appendChild(textNode);
-    row.appendChild(cell);
-    cell = document.createElement('td');
-    textNode = document.createTextNode(book.title);
-    cell.appendChild(textNode);
-    row.appendChild(cell);
-    cell = document.createElement('td');
-    textNode = document.createTextNode(book.pages);
-    cell.appendChild(textNode);
-    row.appendChild(cell);
-    cell = document.createElement('td');
-    console.log(book.read);
-    if (!book.read) {
-        textNode = document.createTextNode("No");
-    } else {
-        textNode = document.createTextNode("Yes");
+    for (i = 0; i < myLibrary.length; i++) {
+        if (myLibrary[i].title == book.title) {
+            exists = true;
+        } else {
+            exists = false;
+        }
     }
-    cell.appendChild(textNode);
-    row.appendChild(cell);
-    cell = document.createElement('td');
-    table.appendChild(row);
+    if (!exists) {
+        myLibrary.push(book);
+        updateTable();
+    } else {
+        window.alert("That book is already inserted!");
+    }
+}
+
+function deleteBook(title) {
+    for (i = 0; i < myLibrary.length; i++) {
+        if (myLibrary[i].title == title) {
+            myLibrary.splice(i, 1);
+            updateTable();
+            return;
+        }
+    }
+}
+
+function unread(title) {
+    for (i = 0; i < myLibrary.length; i++) {
+        if (myLibrary[i].title == title) {
+            myLibrary[i].read = !myLibrary[i].read;
+            updateTable();
+            return; //will only update 1 book if there are repeated entries of the same book
+        }
+    }
 }
